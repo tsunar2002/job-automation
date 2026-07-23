@@ -1,0 +1,25 @@
+# Environment & Secrets
+.env
+*.env
+
+# User Profile & Personal Data
+config/profile.json
+profile.json
+*.pem
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Database Files
+*.sqlite
+*.db
+
+# OS & Editor Files
+.DS_Store
+.vscode/
+.idea/
