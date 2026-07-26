@@ -51,14 +51,18 @@ job-automation/
 ├── .env
 ├── GEMINI.md
 ├── README.md
-├── config/
-│   └── profile.json        # User profile & resume data (git-ignored)
-├── src/
-│   ├── db/                 # Supabase client & DB operations
-│   ├── scrapers/           # Job discovery modules (GitHub, Web)
-│   ├── submitter/          # Browser automation & form filling
-│   └── utils/              # Helper utilities & logging
-└── tests/                  # Mock tests & scraper validation
+├── docs/
+│   └── ARCHITECTURE.md         # Full technical architecture & roadmap
+├── backend/
+│   ├── config/
+│   │   └── profile.json        # User profile & resume data (git-ignored)
+│   ├── src/
+│   │   ├── db/                 # Supabase client & DB operations
+│   │   ├── scrapper/           # Job discovery modules (GitHub, Web)
+│   │   ├── submitter/          # Browser automation & form filling
+│   │   └── cli/                # CLI commands
+│   └── tests/                  # Mock tests & scraper validation
+└── frontend/                   # React/Next.js Web Dashboard (Developer 3)
 ```
 
 ---
@@ -66,10 +70,10 @@ job-automation/
 ## 🛠️ CLI & Development Commands
 
 - **Initialize Database**: Setup Supabase tables & indexes.
-- **Run Discovery Scraper**: `python -m src.cli scrape --source github`
-- **Run Auto-Apply (Dry Run)**: `python -m src.cli apply --dry-run`
-- **Run Auto-Apply (Live Submission)**: `python -m src.cli apply --live`
-- **View Application Status Summary**: `python -m src.cli status`
+- **Run Discovery Scraper**: `python -m backend.src.cli scrape --source github`
+- **Run Auto-Apply (Dry Run)**: `python -m backend.src.cli apply --dry-run`
+- **Run Auto-Apply (Live Submission)**: `python -m backend.src.cli apply --live`
+- **View Application Status Summary**: `python -m backend.src.cli status`
 
 ---
 
