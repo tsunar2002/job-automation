@@ -17,8 +17,8 @@ An automated job search, scraping, application submission, and tracking pipeline
   - `location` (text)
   - `url` (text, unique constraint)
   - `source` (text) — e.g. `'github'`, `'linkedin'`, `'indeed'`
-  - `status` (text, default `'DISCOVERED'`) — status enum: `DISCOVERED`, `QUEUED`, `APPLIED`, `FAILED`, `INTERVIEW`, `REJECTED`
-  - `match_score` (numeric) — fit score based on resume/skills matching
+  - `status` (text, default `'QUEUED'`) — status enum: `QUEUED`, `APPLIED`, `FAILED`, `INTERVIEW`, `REJECTED`
+  - `match_score` (numeric, optional) — fit score (if used in future)
   - `applied_at` (timestamptz)
   - `notes` (text)
   - `created_at` (timestamptz, default `now()`)
