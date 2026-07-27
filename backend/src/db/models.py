@@ -9,7 +9,7 @@ class JobPosting(BaseModel):
     location: Optional[str] = None
     url: str
     source: str = "github"
-    status: str = "QUEUED"  # QUEUED, APPLIED, FAILED, INTERVIEW, REJECTED
+    status: str = "QUEUED"  # QUEUED, APPLIED, FAILED, INTERVIEW, REJECTED, CLOSED
     match_score: Optional[float] = None
     applied_at: Optional[datetime] = None
     notes: Optional[str] = None

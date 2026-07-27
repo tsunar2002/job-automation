@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from backend.src.db.client import get_supabase_client
 from backend.src.db.models import JobPosting
 
-VALID_STATUSES = {"QUEUED", "APPLIED", "FAILED", "INTERVIEW", "REJECTED"}
+VALID_STATUSES = {"QUEUED", "APPLIED", "FAILED", "INTERVIEW", "REJECTED", "CLOSED"}
 
 def insert_job(job: JobPosting) -> Optional[Dict[str, Any]]:
     """
@@ -103,6 +103,23 @@ def get_queued_jobs(limit: int = 10) -> List[Dict[str, Any]]:
         .eq("status", "QUEUED")
         .order("created_at", desc=False)
         .limit(limit)
+        .execute()
+    )
+    if response.data and isinstance(response.data, list):
+        return [row for row in response.data if isinstance(row, dict)]
+    return []
+
+
+def get_queued_jobs_by_source(source: str) -> List[Dict[str, Any]]:
+    """
+    Retrieves all job records with status 'QUEUED' for a specific source.
+    """
+    client = get_supabase_client()
+    response = (
+        client.table("jobs")
+        .select("*")
+        .eq("status", "QUEUED")
+        .eq("source", source)
         .execute()
     )
     if response.data and isinstance(response.data, list):

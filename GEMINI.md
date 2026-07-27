@@ -17,7 +17,7 @@ An automated job search, scraping, application submission, and tracking pipeline
   - `location` (text)
   - `url` (text, unique constraint)
   - `source` (text) — e.g. `'github'`, `'linkedin'`, `'indeed'`
-  - `status` (text, default `'QUEUED'`) — status enum: `QUEUED`, `APPLIED`, `FAILED`, `INTERVIEW`, `REJECTED`
+  - `status` (text, default `'QUEUED'`) — status enum: `QUEUED`, `APPLIED`, `FAILED`, `INTERVIEW`, `REJECTED`, `CLOSED`
   - `match_score` (numeric, optional) — fit score (if used in future)
   - `applied_at` (timestamptz)
   - `notes` (text)
@@ -27,6 +27,8 @@ An automated job search, scraping, application submission, and tracking pipeline
 ### 2. Job Scraping & Discovery (`/scraper`)
 - Modular source adapters (e.g. `github_jobs`, `web_scrapers`).
 - Implement rate limiting, request throttling, and robust HTTP error handling.
+- Implement active synchronization: if a job is missing from a fresh scrape, update its status to `CLOSED` in Supabase.
+- Strip all tracking query parameters (e.g. `utm_source`, `ref`) from application URLs to ensure strict deduplication.
 - Standardize raw scrapings into a unified `JobPosting` data model before writing to Supabase.
 
 ### 3. Application Submission Engine (`/submitter`)
@@ -70,7 +72,8 @@ job-automation/
 ## 🛠️ CLI & Development Commands
 
 - **Initialize Database**: Setup Supabase tables & indexes.
-- **Run Discovery Scraper**: `python -m backend.src.cli scrape --source github`
+- **Run Discovery Scraper (Dry Run)**: `python -m backend.src.cli.scrape --source github --dry-run`
+- **Run Discovery Scraper & Sync DB**: `python -m backend.src.cli.scrape --source github --sync`
 - **Run Auto-Apply (Dry Run)**: `python -m backend.src.cli apply --dry-run`
 - **Run Auto-Apply (Live Submission)**: `python -m backend.src.cli apply --live`
 - **View Application Status Summary**: `python -m backend.src.cli status`
@@ -82,7 +85,7 @@ job-automation/
 - **Planning First Protocol**: Before writing code or making major structural changes on new feature tasks, the AI agent must always create/update an `implementation_plan.md` artifact, ask clarifying questions to resolve ambiguity, and present the plan for user review and approval before proceeding with execution.
 - **Virtual Environment & Dependencies**: All Python packages must be installed strictly within a local project virtual environment (`.venv`) to prevent installing packages globally on the host computer. Every installed package must be added and pinned to `backend/requirements.txt`. The AI agent must automatically execute all Python scripts and commands using the virtual environment binary (e.g., `.venv/bin/python` or within `.venv`) so the user never has to manually activate it.
 - **Self-Updating Rules**: The AI agent working on this repository should proactively update this section when new core architectural constraints, rate limits, or site-specific gotchas are discovered during development.
-- **Throttling & Rate Limits**: Always enforce minimum 2-second delays between external HTTP requests and web scraping tasks to avoid IP blocks.
+- **Throttling, Anti-Bot & Rate Limits**: Always enforce randomized jitter delays (`base + random(0.5, 2.0)`), rotate User-Agent headers, and use exponential backoff (5s -> 10s -> 20s) for HTTP 429/503 errors to avoid IP blocks.
 - **Browser Automation Modes**: Playwright scripts must run in `--dry-run` and headless mode by default, unless `--headful` is explicitly passed for debugging.
 - **Skill Offloading**: Detailed, multi-step procedures for specific job boards (e.g. Workday, Greenhouse, Lever) should be placed as modular skills under `.agents/skills/<skill-name>/` rather than cluttering this file.
 
