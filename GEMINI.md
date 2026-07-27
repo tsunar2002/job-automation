@@ -30,8 +30,9 @@ An automated job search, scraping, application submission, and tracking pipeline
 - Standardize raw scrapings into a unified `JobPosting` data model before writing to Supabase.
 
 ### 3. Application Submission Engine (`/submitter`)
-- Use automated browser tools (Playwright / Selenium) for navigating to application URLs and filling forms.
-- Dynamic field mapping from `profile.json` (Name, Contact, Resume URL, GitHub/LinkedIn links, custom cover letter).
+- Use automated browser tools (**Selenium** + `webdriver-manager`, with explicit `WebDriverWait`/`expected_conditions` waits — never `time.sleep`) for navigating to application URLs and filling forms. First supported ATS: **Ashby** (`ashbyhq.com` / `jobs.ashbyhq.com`); Greenhouse/Lever/Workday are planned later adapters.
+- Dynamic field mapping from `profile.json` (Name, Contact, Resume URL, GitHub/LinkedIn links, custom cover letter, plus an optional `qa_overrides` table for org-specific questions with no natural profile field).
+- **Current phase is autofill-only**: fills out forms, screenshots, and logs actions. There is no submit-button handling and no `--live` mode implemented yet — that mode is described below as the target end-state, not current behavior.
 - **Dry-Run Mode (`--dry-run`)**: Support dry-run execution to fill out forms and log actions without clicking the final submit button.
 
 ---
@@ -81,6 +82,6 @@ job-automation/
 
 - **Self-Updating Rules**: The AI agent working on this repository should proactively update this section when new core architectural constraints, rate limits, or site-specific gotchas are discovered during development.
 - **Throttling & Rate Limits**: Always enforce minimum 2-second delays between external HTTP requests and web scraping tasks to avoid IP blocks.
-- **Browser Automation Modes**: Playwright scripts must run in `--dry-run` and headless mode by default, unless `--headful` is explicitly passed for debugging.
-- **Skill Offloading**: Detailed, multi-step procedures for specific job boards (e.g. Workday, Greenhouse, Lever) should be placed as modular skills under `.agents/skills/<skill-name>/` rather than cluttering this file.
+- **Browser Automation Modes**: Selenium scripts must run headless by default, unless `--headful` is explicitly passed for debugging; the current autofill-only phase never clicks a submit button under any flag.
+- **Skill Offloading**: Detailed, multi-step procedures for specific job boards (e.g. **Ashby**, Workday, Greenhouse, Lever) should be placed as modular skills under `.agents/skills/<skill-name>/` rather than cluttering this file — see `backend/.agents/skills/ashby/SKILL.md`.
 

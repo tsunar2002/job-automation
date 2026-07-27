@@ -7,6 +7,9 @@ config/profile.json
 profile.json
 *.pem
 
+# Submitter run artifacts (screenshots/logs contain real PII)
+backend/src/submitter/runs/
+
 # Python & Virtual Environments
 __pycache__/
 *.py[cod]
@@ -23,3 +26,4 @@ ENV/
 .DS_Store
 .vscode/
 .idea/
+node_modules
