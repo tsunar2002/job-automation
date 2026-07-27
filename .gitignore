@@ -23,3 +23,6 @@ ENV/
 .DS_Store
 .vscode/
 .idea/
+
+# Local Output Data
+backend/scraped_jobs.json
