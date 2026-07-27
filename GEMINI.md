@@ -79,6 +79,8 @@ job-automation/
 
 ## 🛑 Continuous Learning & Constraints Protocol
 
+- **Planning First Protocol**: Before writing code or making major structural changes on new feature tasks, the AI agent must always create/update an `implementation_plan.md` artifact, ask clarifying questions to resolve ambiguity, and present the plan for user review and approval before proceeding with execution.
+- **Virtual Environment & Dependencies**: All Python packages must be installed strictly within a local project virtual environment (`.venv`) to prevent installing packages globally on the host computer. Every installed package must be added and pinned to `backend/requirements.txt`. The AI agent must automatically execute all Python scripts and commands using the virtual environment binary (e.g., `.venv/bin/python` or within `.venv`) so the user never has to manually activate it.
 - **Self-Updating Rules**: The AI agent working on this repository should proactively update this section when new core architectural constraints, rate limits, or site-specific gotchas are discovered during development.
 - **Throttling & Rate Limits**: Always enforce minimum 2-second delays between external HTTP requests and web scraping tasks to avoid IP blocks.
 - **Browser Automation Modes**: Playwright scripts must run in `--dry-run` and headless mode by default, unless `--headful` is explicitly passed for debugging.
