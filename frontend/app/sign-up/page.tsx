@@ -2,10 +2,58 @@
 
 import { useState } from "react";
 import { EyeIcon } from "../components/EyeIcon";
+import { GoogleIcon } from "../components/GoogleIcon";
+import { supabase } from "../lib/supabaseClient";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignUp(e: React.SubmitEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords don't match.");
+      return;
+    }
+
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    // Supabase returns an empty identities array when the email is already registered.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError("An account with this email already exists. Sign in instead.");
+      return;
+    }
+
+    setSuccess(true);
+  }
+
+  async function handleGoogleSignUp() {
+    setError(null);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+  }
 
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
@@ -84,96 +132,146 @@ export default function SignUp() {
             Start automating your job search in minutes.
           </p>
 
-          <form className="mt-8 flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                placeholder="Jane Doe"
-                className="h-11 rounded-lg border border-black/[.08] bg-transparent px-4 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
-              />
+          {success ? (
+            <div className="mt-8 rounded-lg border border-black/[.08] px-4 py-6 text-center dark:border-white/[.145]">
+              <p className="text-sm font-medium text-black dark:text-zinc-50">
+                Check your email
+              </p>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                We sent a confirmation link to {email}.
+              </p>
             </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="email"
-                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleGoogleSignUp}
+                className="mt-8 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/[.08] text-sm font-medium text-black transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-50 dark:hover:bg-[#1a1a1a]"
               >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                className="h-11 rounded-lg border border-black/[.08] bg-transparent px-4 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
-              />
-            </div>
+                <GoogleIcon />
+                Continue with Google
+              </button>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="h-11 w-full rounded-lg border border-black/[.08] bg-transparent px-4 pr-11 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-zinc-500 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
-                >
-                  <EyeIcon open={showPassword} />
-                </button>
+              <div className="my-6 flex items-center gap-4">
+                <div className="h-px flex-1 bg-black/[.08] dark:bg-white/[.145]" />
+                <span className="text-xs font-medium text-zinc-500">OR</span>
+                <div className="h-px flex-1 bg-black/[.08] dark:bg-white/[.145]" />
               </div>
-            </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="confirm-password"
-                className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Confirm password
-              </label>
-              <div className="relative">
-                <input
-                  id="confirm-password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="h-11 w-full rounded-lg border border-black/[.08] bg-transparent px-4 pr-11 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
-                />
+              <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+                {error && (
+                  <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="name"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="Jane Doe"
+                    className="h-11 rounded-lg border border-black/[.08] bg-transparent px-4 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="email"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@example.com"
+                    className="h-11 rounded-lg border border-black/[.08] bg-transparent px-4 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      placeholder="••••••••"
+                      className="h-11 w-full rounded-lg border border-black/[.08] bg-transparent px-4 pr-11 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-zinc-500 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
+                    >
+                      <EyeIcon open={showPassword} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="confirm-password"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Confirm password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirm-password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                      className="h-11 w-full rounded-lg border border-black/[.08] bg-transparent px-4 pr-11 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                      aria-label={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                      }
+                      className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-zinc-500 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
+                    >
+                      <EyeIcon open={showConfirmPassword} />
+                    </button>
+                  </div>
+                </div>
+
                 <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((v) => !v)}
-                  aria-label={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-zinc-500 transition-colors hover:text-black dark:text-zinc-400 dark:hover:text-zinc-50"
+                  type="submit"
+                  disabled={loading}
+                  className="mt-2 flex h-11 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-60 dark:hover:bg-[#ccc]"
                 >
-                  <EyeIcon open={showConfirmPassword} />
+                  {loading ? "Creating account…" : "Create account"}
                 </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="mt-2 flex h-11 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-            >
-              Create account
-            </button>
-          </form>
+              </form>
+            </>
+          )}
 
           <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
             Already have an account?{" "}

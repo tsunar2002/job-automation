@@ -2,9 +2,39 @@
 
 import { useState } from "react";
 import { EyeIcon } from "../components/EyeIcon";
+import { GoogleIcon } from "../components/GoogleIcon";
+import { supabase } from "../lib/supabaseClient";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignIn(e: React.SubmitEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+    if (error) {
+      setError("Invalid email or password.");
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin },
+    });
+  }
 
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
@@ -84,7 +114,28 @@ export default function SignIn() {
             Welcome back. Enter your details to continue.
           </p>
 
-          <form className="mt-8 flex flex-col gap-4">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="mt-8 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/[.08] text-sm font-medium text-black transition-colors hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-50 dark:hover:bg-[#1a1a1a]"
+          >
+            <GoogleIcon />
+            Continue with Google
+          </button>
+
+          <div className="my-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-black/[.08] dark:bg-white/[.145]" />
+            <span className="text-xs font-medium text-zinc-500">OR</span>
+            <div className="h-px flex-1 bg-black/[.08] dark:bg-white/[.145]" />
+          </div>
+
+          <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+            {error && (
+              <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
+
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="email"
@@ -95,6 +146,9 @@ export default function SignIn() {
               <input
                 id="email"
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 placeholder="you@example.com"
                 className="h-11 rounded-lg border border-black/[.08] bg-transparent px-4 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
               />
@@ -111,6 +165,9 @@ export default function SignIn() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                   placeholder="••••••••"
                   className="h-11 w-full rounded-lg border border-black/[.08] bg-transparent px-4 pr-11 text-sm text-black outline-none transition-colors focus:border-black/30 dark:border-white/[.145] dark:text-zinc-50 dark:focus:border-white/30"
                 />
@@ -127,9 +184,10 @@ export default function SignIn() {
 
             <button
               type="submit"
-              className="mt-2 flex h-11 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
+              disabled={loading}
+              className="mt-2 flex h-11 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-60 dark:hover:bg-[#ccc]"
             >
-              Sign in
+              {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
