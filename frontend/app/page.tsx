@@ -1,3 +1,5 @@
+import { AuthNav } from "./components/AuthNav";
+
 const steps = [
   {
     label: "01",
@@ -35,12 +37,7 @@ export default function Home() {
           TBD
         </span>
         <div className="flex items-center gap-6">
-          <a
-            href="/sign-in"
-            className="flex h-9 items-center justify-center rounded-full bg-foreground px-4 text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-          >
-            Sign in
-          </a>
+          <AuthNav />
         </div>
       </header>
 
