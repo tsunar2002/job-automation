@@ -1,6 +1,7 @@
 # Environment & Secrets
 .env
 *.env
+.env*.local
 
 # User Profile & Personal Data
 config/profile.json
