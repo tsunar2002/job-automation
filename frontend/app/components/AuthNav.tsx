@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
 export function AuthNav() {
+  const router = useRouter();
   const [email, setEmail] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -12,13 +14,24 @@ export function AuthNav() {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setEmail(session?.user.email ?? null);
+
+        // Only nudge to onboarding right at sign-in, not on every later
+        // visit — otherwise someone who skips onboarding gets bounced
+        // right back here the moment they land on the home page.
+        if (
+          event === "SIGNED_IN" &&
+          session &&
+          !session.user.user_metadata?.onboarding_completed
+        ) {
+          router.push("/onboarding");
+        }
       }
     );
 
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   // Avoid a flash of the wrong state while the session is being checked.
   if (email === undefined) {

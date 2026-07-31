@@ -19,7 +19,7 @@ export default function SignIn() {
     setError(null);
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -30,7 +30,8 @@ export default function SignIn() {
       return;
     }
 
-    router.push("/");
+    const onboardingCompleted = data.user?.user_metadata?.onboarding_completed;
+    router.push(onboardingCompleted ? "/" : "/onboarding");
   }
 
   async function handleGoogleSignIn() {
