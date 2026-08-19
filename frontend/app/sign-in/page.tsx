@@ -31,14 +31,14 @@ export default function SignIn() {
     }
 
     const onboardingCompleted = data.user?.user_metadata?.onboarding_completed;
-    router.push(onboardingCompleted ? "/" : "/onboarding");
+    router.push(onboardingCompleted ? "/dashboard" : "/onboarding");
   }
 
   async function handleGoogleSignIn() {
     setError(null);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
   }
 
