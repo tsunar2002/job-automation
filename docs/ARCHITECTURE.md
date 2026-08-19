@@ -34,9 +34,9 @@ This document defines the technical architecture, agentic design patterns, step-
                     ▼                                           ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                    3. APPLICATION ENGINE (src/submitter)                        │
-│     [🤖 Playwright Form Engine] ──► [🔌 Adapters: Greenhouse / Lever / Workday]  │
+│     [🤖 Selenium Form Engine] ──► [🔌 Adapters: Ashby (first) / Greenhouse / Lever / Workday] │
 │                                                                                 │
-│     (Submits Application / Dry-Run & Updates Result back to Supabase)           │
+│     (Autofills Application / Dry-Run & Updates Result back to Supabase)         │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -60,8 +60,8 @@ flowchart TD
     end
 
     subgraph Submitter ["3. Application Engine (/src/submitter)"]
-        G["🤖 Playwright Form Engine"]
-        H["🔌 Portal Adapters: Greenhouse / Lever / Workday"]
+        G["🤖 Selenium Form Engine"]
+        H["🔌 Portal Adapters: Ashby (first) / Greenhouse / Lever / Workday"]
     end
 
     subgraph CLI ["4. CLI & User Configuration (/src/cli)"]
@@ -108,9 +108,10 @@ job-automation/
 │   │   ├── github_jobs.py      # Scrapes markdown job lists from GitHub repos
 │   │   └── web_board.py        # Generic web scraper
 │   ├── submitter/              # Module 3: Browser automation engine
-│   │   ├── browser.py          # Playwright browser manager (headless/headful)
+│   │   ├── browser.py          # Selenium (webdriver-manager) browser manager (headless/headful)
 │   │   ├── form_filler.py      # Field mapper & input interaction engine
-│   │   └── strategies/         # Site-specific portal strategies
+│   │   ├── ashby.py            # Ashby ATS — first supported/implemented, autofill-only
+│   │   └── strategies/         # Site-specific portal strategies (planned, once a 2nd ATS is built)
 │   │       ├── base_strategy.py
 │   │       ├── greenhouse.py
 │   │       ├── lever.py
@@ -127,25 +128,24 @@ job-automation/
 The core submission loop relies on a 4-step agentic loop:
 
 1. **Perception**:
-   - Playwright launches the job application link.
-   - Scans the page DOM to extract visible input fields (`<input>`, `<select>`, `<textarea>`, file upload inputs).
+   - Selenium (Chrome via `webdriver-manager`) launches the job application link.
+   - Scans the page DOM to extract visible input fields (`<input>`, `<select>`, `<textarea>`, file upload inputs). For Ashby specifically, this means waiting for `.ashby-application-form-container` and iterating `.ashby-application-form-field-entry` elements — see `.agents/skills/ashby/SKILL.md`.
 
 2. **Reasoning & Field Mapping**:
    - Matches form input labels to keys in `profile.json`:
      - `"First Name"` ➔ `profile.first_name`
      - `"Email Address"` ➔ `profile.email`
      - `"Attach Resume"` ➔ `profile.resume_path`
-   - If an unknown field is encountered (e.g. *"Are you authorized to work in the US?"*), uses fallback rules or basic defaults.
+   - If an unknown field is encountered (e.g. *"Are you authorized to work in the US?"*), checks `profile.json`'s `qa_overrides` table by label keyword; if still unmatched, logs it for manual review rather than guessing, without halting the rest of the run.
 
 3. **Action & Execution**:
    - Types values into inputs with human-like delays.
    - Uploads PDF resume file.
-   - If `--dry-run` is enabled: Pauses before final click, takes a verification screenshot, and logs form state.
-   - If `--live` is enabled: Submits form and listens for confirmation page response.
+   - **Current phase (Ashby, autofill-only): fills every mappable field, takes a verification screenshot, and logs form state — there is no submit step and no `--live` mode implemented yet.** The `--dry-run`/`--live` split described here is the target end-state for the full pipeline, once submit handling is built for a given ATS.
 
 4. **Self-Correction & Error Recovery**:
    - If a modal or cookie banner pops up blocking the screen, detects overlay elements and clicks "Accept/Close".
-   - If required fields are missing, marks status as `FAILED` with explicit error logs in Supabase.
+   - If required fields are missing, this is logged locally as `MANUAL_REVIEW_REQUIRED` in the current autofill-only phase; will map to Supabase `FAILED`/`notes` once `src/db/` is wired up.
 
 ---
 
@@ -160,9 +160,13 @@ The core submission loop relies on a 4-step agentic loop:
   - Build `src/scrapers/github_jobs.py` to parse tech job markdown repos.
   - Implement URL deduplication against Supabase and set initial status to `QUEUED`.
 
-- [ ] **Phase 3: Playwright Submitter (Dry Run)**
-  - Build `src/submitter/browser.py` and portal strategies (Greenhouse/Lever).
-  - Test `--dry-run` form filling and screenshot logging.
+- [x] **Phase 3a: Selenium Autofill — Ashby (implemented)**
+  - Built `src/submitter/browser.py`, `ashby.py`, `field_mapper.py`, `form_filler.py`.
+  - Autofill-only: form filling and screenshot/JSON logging verified against a real Ashby posting. No submit step yet.
+
+- [ ] **Phase 3b: Live Submission & Additional ATS Portals**
+  - Add submit-button handling + `--live` mode (currently out of scope).
+  - Add Greenhouse/Lever/Workday adapters once a second ATS is prioritized.
 
 - [ ] **Phase 4: CLI & End-to-End Testing**
   - Wire CLI commands in `src/cli/main.py`.
