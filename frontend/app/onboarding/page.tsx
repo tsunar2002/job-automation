@@ -4,6 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
+function formatPhoneNumber(value: string) {
+  const digits = value.replace(/\D/g, "").replace(/^1/, "").slice(0, 10);
+  if (!digits) return "";
+
+  const area = digits.slice(0, 3);
+  const prefix = digits.slice(3, 6);
+  const line = digits.slice(6, 10);
+
+  return ["+1", area, prefix, line].filter(Boolean).join(" ");
+}
+
 export default function Onboarding() {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
@@ -42,7 +53,7 @@ export default function Onboarding() {
           as we find matching roles.
         </p>
         <a
-          href="/"
+          href="/dashboard"
           className="mt-8 flex h-11 items-center justify-center rounded-full bg-foreground px-8 text-sm font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
         >
           Go to dashboard
@@ -78,7 +89,7 @@ export default function Onboarding() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="firstName" className={labelClass}>
-                First name
+                First name <span className="text-red-500">*</span>
               </label>
               <input
                 id="firstName"
@@ -92,7 +103,7 @@ export default function Onboarding() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="lastName" className={labelClass}>
-                Last name
+                Last name <span className="text-red-500">*</span>
               </label>
               <input
                 id="lastName"
@@ -115,8 +126,8 @@ export default function Onboarding() {
                 id="phone"
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 (555) 019-2834"
+                onChange={(e) => setPhone(formatPhoneNumber(e.target.value))}
+                placeholder="+1 347 888 8888"
                 className={inputClass}
               />
             </div>
