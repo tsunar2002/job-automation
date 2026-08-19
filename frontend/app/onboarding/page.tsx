@@ -31,9 +31,20 @@ export default function Onboarding() {
 
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
-    // TODO: persist full profile fields to a Supabase `profiles` table once it exists.
-    // For now we just flag onboarding as complete on the auth user.
-    await supabase.auth.updateUser({ data: { onboarding_completed: true } });
+    // TODO: resume file itself needs Supabase Storage (no bucket exists yet) —
+    // everything else lives in user_metadata until there's a real `profiles` table.
+    await supabase.auth.updateUser({
+      data: {
+        onboarding_completed: true,
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        location,
+        linkedin_url: linkedinUrl,
+        github_url: githubUrl,
+        portfolio_url: portfolioUrl,
+      },
+    });
     setSaved(true);
   }
 

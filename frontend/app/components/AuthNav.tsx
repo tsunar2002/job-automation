@@ -11,6 +11,12 @@ export function AuthNav() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setEmail(data.session?.user.email ?? null);
+
+      // A fully onboarded, signed-in user landing on the marketing page
+      // should go straight to their dashboard instead.
+      if (data.session?.user.user_metadata?.onboarding_completed) {
+        router.push("/dashboard");
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
@@ -20,12 +26,12 @@ export function AuthNav() {
         // Only nudge to onboarding right at sign-in, not on every later
         // visit — otherwise someone who skips onboarding gets bounced
         // right back here the moment they land on the home page.
-        if (
-          event === "SIGNED_IN" &&
-          session &&
-          !session.user.user_metadata?.onboarding_completed
-        ) {
-          router.push("/onboarding");
+        if (event === "SIGNED_IN" && session) {
+          router.push(
+            session.user.user_metadata?.onboarding_completed
+              ? "/dashboard"
+              : "/onboarding"
+          );
         }
       }
     );
