@@ -51,25 +51,25 @@ export default function SignUp() {
     setError(null);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/dashboard` },
     });
   }
 
   return (
     <div className="flex flex-1 flex-col lg:flex-row">
       {/* Left: graphic panel */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-zinc-400 px-12 py-12 lg:flex lg:w-1/2">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-zinc-950 px-12 py-12 lg:flex lg:w-1/2">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.06),transparent_45%)]" />
 
         <a
           href="/"
-          className="relative text-lg font-semibold tracking-tight text-black"
+          className="relative text-lg font-semibold tracking-tight text-zinc-50"
         >
           TBD
         </a>
 
         <div className="relative flex flex-col gap-10">
-          <h2 className="max-w-md text-2xl font-medium leading-snug text-black">
+          <h2 className="max-w-md text-2xl font-medium leading-snug text-zinc-50">
             Stop copy-pasting the same application into 50 different forms.
           </h2>
 
@@ -81,7 +81,7 @@ export default function SignUp() {
               "Dry-run mode, so you're always in control",
             ].map((benefit) => (
               <li key={benefit} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-black text-white">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-black">
                   <svg
                     viewBox="0 0 12 12"
                     fill="none"
@@ -97,7 +97,7 @@ export default function SignUp() {
                     />
                   </svg>
                 </span>
-                <p className="text-sm text-zinc-700">{benefit}</p>
+                <p className="text-sm text-zinc-300">{benefit}</p>
               </li>
             ))}
           </ul>
